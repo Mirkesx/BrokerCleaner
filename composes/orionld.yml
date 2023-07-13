@@ -1,0 +1,53 @@
+version: "3.8"
+services:
+
+
+  # Orion is the context broker
+  orion:
+    labels:
+      org.fiware: 'tutorial'
+    image: quay.io/fiware/orion-ld:${ORION_LD_VERSION}
+    hostname: orion
+    container_name: fiware-orion
+    depends_on:
+      - mongo-db
+    networks:
+      - default
+    ports:
+      - "${ORION_LD_PORT}:${ORION_LD_PORT}" # localhost:1026
+    command: -dbhost mongo-db -logLevel DEBUG -forwarding  -experimental
+    healthcheck:
+      test: curl --fail -s http://orion:${ORION_LD_PORT}/version || exit 1
+
+
+  # Databases
+  mongo-db:
+    labels:
+      org.fiware: 'tutorial'
+    image: mongo:${MONGO_DB_VERSION}
+    hostname: mongo-db
+    container_name: db-mongo
+    expose:
+      - "${MONGO_DB_PORT}"
+    ports:
+      - "${MONGO_DB_PORT}:${MONGO_DB_PORT}" # localhost:27017
+    networks:
+      - default
+    volumes:
+      - mongo-db:/data/db
+      - mongo-config:/data/configdb
+    healthcheck:
+      test: |
+        host=`hostname --ip-address || echo '127.0.0.1'`; 
+        mongo --quiet $host/test --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)' && echo 0 || echo 1
+      interval: 5s
+
+
+networks:
+  default:
+    labels:
+      org.fiware: 'tutorial'
+
+volumes:
+  mongo-db: ~
+  mongo-config: ~

@@ -1,0 +1,9 @@
+# Python3.11 project
+
+docopt==0.6.2
+schema==0.7.5
+fastapi==0.100.0
+uvicorn==0.22.0
+secure==0.3.0
+loguru==0.7.0
+python-on-whales==0.62.0
