@@ -109,7 +109,7 @@ async def init(request: Request, response: Response):
         # Send the information to the docker management classes
         try:
             composeEngine.initialize(broker=broker)
-            await composeEngine.up()
+            composeEngine.up()
 
             resp = {'message': f'Deploying the Context Broker: {broker}'}
             response.status_code = status.HTTP_201_CREATED
