@@ -1,5 +1,4 @@
 {
-  "client": "docker",
   "logger": {
     "path": "./logs/access.log",
     "level": "debug",

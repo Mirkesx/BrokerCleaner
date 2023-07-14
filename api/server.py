@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 ##
-# Copyright 2022 FIWARE Foundation, e.V.
+# Copyright 2023 FIWARE Foundation, e.V.
 #
 # This file is part of IoTAgent-SDMX (RDF Turtle)
 #
@@ -26,9 +26,9 @@ from datetime import datetime
 from secure import Server, ContentSecurityPolicy, StrictTransportSecurity, \
     ReferrerPolicy, PermissionsPolicy, CacheControl, Secure
 from logging import getLogger
-from pathlib import Path
 from api.custom_logging import CustomizeLogger
-from json import load
+from components.compose import Compose
+from components.exceptions import ComposeInitialization, UnknownBroker, Unimplemented
 from cli.command import __version__
 
 initial_uptime = datetime.now()
@@ -36,15 +36,14 @@ logger = getLogger(__name__)
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title='Context Broker Management', debug=False)
-    logging_config_path = Path.cwd().joinpath('common/config.json')
-    customize_logger = CustomizeLogger.make_logger(logging_config_path)
-    app.logger = customize_logger
+    app = FastAPI(title='BrokerCleaner Management', debug=False)
+    app.logger = CustomizeLogger.make_logger()
 
     return app
 
 
 application = create_app()
+composeEngine = Compose()
 
 
 @application.middleware("http")
@@ -100,22 +99,63 @@ def getversion(request: Request):
 
 @application.post("/init", status_code=status.HTTP_201_CREATED)
 async def init(request: Request, response: Response):
-    request.app.logger.info(f'Request init Context Broker: Orion-LD')
+    request.app.logger.info(f'Request init a Context Broker')
 
-    resp = {'message': 'Allowed file type is only ttl'}
-    response.status_code = status.HTTP_400_BAD_REQUEST
-    request.app.logger.error(f'POST /parse 400 Bad Request, Orion-LD')
+    content_type = request.headers.get('Content-Type')
+    if content_type == 'application/json':
+        json = await request.json()
+        broker = json["broker"]
+
+        # Send the information to the docker management classes
+        try:
+            composeEngine.initialize(broker=broker)
+            await composeEngine.up()
+
+            resp = {'message': f'Deploying the Context Broker: {broker}'}
+            response.status_code = status.HTTP_201_CREATED
+            request.app.logger.info(f'POST /init 201 Created Request, Deploying {broker}')
+
+        except ComposeInitialization as e:
+            resp = {'message': f'The docker engine was not initialized'}
+            response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            request.app.logger.error(f'POST /init 500 Internal Server Error: {e.message}')
+        except UnknownBroker as e:
+            resp = {'message': f'Unexpected name for the Context Broker. Valid values: {composeEngine.brokers.keys()}'}
+            response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            request.app.logger.error(f'POST /init 500 Internal Server Error: {e.message}')
+        except Unimplemented as e:
+            resp = {'message': f'The deployment of {broker} is not implemented'}
+            response.status_code = status.HTTP_501_NOT_IMPLEMENTED
+            request.app.logger.error(f'POST /init 501 Internal Server Error: {e.message}')
+
+    else:
+        resp = {'message': 'Allowed Content-Type is only application/json'}
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        request.app.logger.error(f'POST /init 400 Bad Request')
 
     return resp
 
 
-@application.post("/clean", status_code=status.HTTP_201_CREATED)
+@application.post("/clean", status_code=status.HTTP_200_OK)
 async def clean(request: Request, response: Response):
-    request.app.logger.info(f'Request clean file Orion-LD')
+    request.app.logger.info(f'Request clean a Context Broker')
 
-    resp = {'message': 'Allowed file type is only ttl'}
-    response.status_code = status.HTTP_400_BAD_REQUEST
-    request.app.logger.error(f'POST /parse 400 Bad Request, file: Orion-LD')
+    content_type = request.headers.get('Content-Type')
+    if content_type == 'application/json':
+        json = await request.json()
+        broker = json["broker"]
+
+        # Send the information to the docker management classes
+        composeEngine.initialize(broker=broker)
+        composeEngine.down()
+
+        resp = {'message': f'Cleaning the Context Broker: {json["broker"]}'}
+        response.status_code = status.HTTP_200_OK
+        request.app.logger.info(f'POST /clean 200 Created Request, Deploying {json["broker"]}')
+    else:
+        resp = {'message': 'Allowed Content-Type is only application/json'}
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        request.app.logger.error(f'POST /clean 400 Bad Request')
 
     return resp
 
@@ -131,17 +171,6 @@ def get_uptime():
     fmt = '{d} days, {h} hours, {m} minutes, and {s} seconds'
 
     return fmt.format(d=days, h=hours, m=minutes, s=seconds)
-
-
-def get_url():
-    config_path = Path.cwd().joinpath('common/config.json')
-
-    with open(config_path) as config_file:
-        config = load(config_file)
-
-    url = f"{config['broker']}/ngsi-ld/v1/entityOperations/create"
-
-    return url
 
 
 def launch(app: str = "server:application", host: str = "127.0.0.1", port: int = 5000):

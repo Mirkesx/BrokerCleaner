@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 ##
-# Copyright 2022 FIWARE Foundation, e.V.
+# Copyright 2023 FIWARE Foundation, e.V.
 #
 # This file is part of IoTAgent-SDMX (RDF Turtle)
 #
@@ -19,7 +19,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 ##
-"""IoTAgent RDF Turtle parser to NGSI-LD
+"""Broker Cleaner service for NGSI-LD Test Suite execution
 
 Usage:
   agent.py [--host HOST] [--port PORT]
@@ -48,7 +48,7 @@ __author__ = "fla"
 
 
 def parse_cli() -> dict:
-    version = f'IoTAgent-Turtle version {__version__}'
+    version = f'BrokerCleaner version {__version__}'
 
     args = docopt(__doc__.format(proc=basename(argv[0])), version=version)
 

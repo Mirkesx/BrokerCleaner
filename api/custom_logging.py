@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 ##
-# Copyright 2022 FIWARE Foundation, e.V.
+# Copyright 2023 FIWARE Foundation, e.V.
 #
 # This file is part of IoTAgent-SDMX (RDF Turtle)
 #
@@ -19,13 +19,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 ##
-# Custom Logger Using Loguru
-
 from logging import Handler, currentframe, __file__, basicConfig, getLogger
 import sys
 from pathlib import Path
 from loguru import logger
-from json import load
+from common.config import config
 
 
 class InterceptHandler(Handler):
@@ -58,8 +56,7 @@ class InterceptHandler(Handler):
 
 class CustomizeLogger:
     @classmethod
-    def make_logger(cls, config_path: Path):
-        config = cls.load_logging_config(config_path)
+    def make_logger(cls):
         logging_config = config.get('logger')
 
         logger = cls.customize_logging(
@@ -105,10 +102,3 @@ class CustomizeLogger:
             _logger.handlers = [InterceptHandler()]
 
         return logger.bind(request_id=None, method=None)
-
-    @classmethod
-    def load_logging_config(cls, config_path):
-        config = None
-        with open(config_path) as config_file:
-            config = load(config_file)
-        return config

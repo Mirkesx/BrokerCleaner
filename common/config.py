@@ -19,13 +19,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 ##
-from api.server import launch
-from cli.command import parse_cli
+from pathlib import Path
+from json import load
 
+logging_config_path = Path.cwd().joinpath('common/config.json')
 
-if __name__ == "__main__":
-    args = parse_cli()
-
-    launch(app="api.server:application",
-           host=args['--host'],
-           port=args['--port'])
+with open(logging_config_path) as config_file:
+    config = load(config_file)
