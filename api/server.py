@@ -160,6 +160,29 @@ async def clean(request: Request, response: Response):
     return resp
 
 
+@application.post("/check_status", status_code=status.HTTP_200_OK)
+async def clean(request: Request, response: Response):
+    request.app.logger.info(f'Request healthy check status of the deployment of a Context Broker')
+
+    content_type = request.headers.get('Content-Type')
+    if content_type == 'application/json':
+        json = await request.json()
+        broker = json["broker"]
+
+        # Check the health status of the composer
+        composeEngine.initialize(broker=broker)
+        resp = composeEngine.check_health_status()
+
+        response.status_code = status.HTTP_200_OK
+        request.app.logger.info(f'POST /check_status 200 Check Status Request, broker {json["broker"]}')
+    else:
+        resp = {'message': 'Allowed Content-Type is only application/json'}
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        request.app.logger.error(f'POST /clean 400 Bad Request')
+
+    return resp
+
+
 def get_uptime():
     now = datetime.now()
     delta = now - initial_uptime
