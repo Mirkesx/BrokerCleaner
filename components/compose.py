@@ -27,8 +27,8 @@ class Compose:
     def __init__(self):
         self.brokers = {
             "Orion-LD": ["./composes/orionld.yml"],
-            "Stellio": [],
-            "Scorpio": []
+            "Stellio": ["./composes/stellio.yml"],
+            "Scorpio": ["./composes/scorpio.yml"]
         }
 
         self.dockerEngine = None
