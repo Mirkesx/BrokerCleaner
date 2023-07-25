@@ -3,12 +3,20 @@ version: '3'
 services:
   zookeeper:
     image: zookeeper
+    labels:
+      org.nec: 'tutorial'
+    networks:
+      - default
     ports:
       - "2181"
     logging:
       driver: none
   kafka:
     image: bitnami/kafka
+    labels:
+      org.nec: 'tutorial'
+    networks:
+      - default
     ports:
       - "9092"
     environment:
@@ -26,6 +34,10 @@ services:
       driver: none
   postgres:
     image: postgis/postgis
+    labels:
+      org.nec: 'tutorial'
+    networks:
+      - default
     ports:
       - "5432"
     environment:
@@ -34,12 +46,24 @@ services:
       POSTGRES_DB: ngb
     logging:
       driver: none
-#    volumes:
-#      - /custom/mount:/var/lib/postgresql/data
+    volumes:
+      - scorpio-db:/var/lib/postgresql/data
   scorpio:
     image: scorpiobroker/all-in-one-runner:ubuntu-latest
+    labels:
+      org.nec: 'tutorial'
+    networks:
+      - default
     ports:
       - "9090:9090"
     depends_on:
       - postgres
       - kafka
+
+networks:
+  default:
+    labels:
+      org.nec: 'tutorial'
+
+volumes:
+  scorpio-db: ~
