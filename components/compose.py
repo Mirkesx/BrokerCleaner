@@ -91,11 +91,13 @@ class Compose:
             self.containers = [x.name for x in status if x.name in self.container_names[self.broker]]
 
             status = self.dockerEngine.container.inspect(self.containers)
-            status = [{"name": x.name, "health": x.state.health.status, "status": x.state.status} for x in status]
+            status = [{"name": x.name, "health": x.state.health.status if x.state.health is not None else "unknown", "status": x.state.status} for x in status]
 
-            health_status = [x['health'] for x in status]
-
-            if True in [ele == "unhealthy" for ele in health_status]:
+            health_status = [x['health'] if 'health' in x else "unknown" for x in status]
+            
+            if True in [ele == "unknown" for ele in health_status]:
+                res = "unknown"
+            elif True in [ele == "unhealthy" for ele in health_status]:
                 res = "unhealthy"
             elif True in [ele == "starting" for ele in health_status]:
                 res = "starting"
