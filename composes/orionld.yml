@@ -12,7 +12,7 @@ services:
     depends_on:
       - mongo-db
     networks:
-      - default
+      - orion
     ports:
       - "${ORION_LD_PORT}:${ORION_LD_PORT}" # localhost:1026
     command: -dbhost mongo-db -logLevel DEBUG -forwarding  -experimental
@@ -32,7 +32,7 @@ services:
     ports:
       - "${MONGO_DB_PORT}:${MONGO_DB_PORT}" # localhost:27017
     networks:
-      - default
+      - orion
     volumes:
       - mongo-db:/data/db
       - mongo-config:/data/configdb
@@ -44,7 +44,7 @@ services:
 
 
 networks:
-  default:
+  orion:
     labels:
       org.fiware: 'tutorial'
 
