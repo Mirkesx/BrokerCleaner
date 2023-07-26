@@ -1,15 +1,9 @@
 version: '3.9'
 services:
-  kafka:
+  stellio-kafka:
     image: confluentinc/cp-kafka:7.3.1
-    labels:
-      org.egm: 'tutorial'
-    networks:
-      - default
     container_name: stellio-kafka
-    hostname: stellio-kafka
-    ports:
-      - "29092:29092"
+    hostname: kafka
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
@@ -22,22 +16,25 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG4J_ROOT_LOGLEVEL: INFO
+    networks:
+      - stellio
+    ports:
+      - "29092:29092"
     volumes:
       - ./config/kafka/update_run.sh:/tmp/update_run.sh
     command: "bash -c 'if [ ! -f /tmp/update_run.sh ]; then echo \"ERROR: Did you forget the update_run.sh file that came with this docker-compose.yml file?\" && exit 1 ; else /tmp/update_run.sh && /etc/confluent/docker/run ; fi'"
-  postgres:
+  stellio-postgres:
     image: stellio/stellio-timescale-postgis:14-2.11.1-3.3
-    labels:
-      org.egm: 'tutorial'
-    networks:
-      - default
     container_name: stellio-postgres
+    hostname: postgres
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASS=${POSTGRES_PASS}
       - POSTGRES_DBNAME=${POSTGRES_DBNAME}
       - POSTGRES_MULTIPLE_EXTENSIONS=postgis,timescaledb,pgcrypto
       - ACCEPT_TIMESCALE_TUNING=TRUE
+    networks:
+      - stellio
     ports:
       - "5432:5432"
     volumes:
@@ -48,24 +45,20 @@ services:
       timeout: 5s
       retries: 20
       start_period: 10s
-  api-gateway:
+  stellio-api-gateway:
     container_name: stellio-api-gateway
     image: stellio/stellio-api-gateway:${STELLIO_DOCKER_TAG}
-    labels:
-      org.egm: 'tutorial'
-    networks:
-      - default
+    hostname: api-gateway
     environment:
       - SPRING_PROFILES_ACTIVE=${ENVIRONMENT}
+    networks:
+      - stellio
     ports:
       - "8080:8080"
-  search-service:
+  stellio-search-service:
     container_name: stellio-search-service
     image: stellio/stellio-search-service:${STELLIO_DOCKER_TAG}
-    labels:
-      org.egm: 'tutorial'
-    networks:
-      - default
+    hostname: search-service
     environment:
       - SPRING_PROFILES_ACTIVE=${ENVIRONMENT}
       - SPRING_R2DBC_URL=r2dbc:postgresql://postgres/${STELLIO_SEARCH_DB_DATABASE}
@@ -76,20 +69,19 @@ services:
       - APPLICATION_TENANTS_0_ISSUER=${APPLICATION_TENANTS_0_ISSUER}
       - APPLICATION_TENANTS_0_URI=${APPLICATION_TENANTS_0_URI}
       - APPLICATION_TENANTS_0_DBSCHEMA=${APPLICATION_TENANTS_0_DBSCHEMA}
+    networks:
+      - stellio
     ports:
       - "8083:8083"
     depends_on:
-      postgres:
+      stellio-postgres:
         condition: service_healthy
-      kafka:
+      stellio-kafka:
         condition: service_started
-  subscription-service:
+  stellio-subscription-service:
     container_name: stellio-subscription-service
     image: stellio/stellio-subscription-service:${STELLIO_DOCKER_TAG}
-    labels:
-      org.egm: 'tutorial'
-    networks:
-      - default
+    hostname: subscription-service
     environment:
       - SPRING_PROFILES_ACTIVE=${ENVIRONMENT}
       - SPRING_R2DBC_URL=r2dbc:postgresql://postgres/${STELLIO_SUBSCRIPTION_DB_DATABASE}
@@ -102,16 +94,18 @@ services:
       - APPLICATION_TENANTS_0_DBSCHEMA=${APPLICATION_TENANTS_0_DBSCHEMA}
       - SUBSCRIPTION_ENTITY_SERVICE-URL=${SUBSCRIPTION_ENTITY_SERVICE_URL}
       - SUBSCRIPTION_STELLIO_URL=${SUBSCRIPTION_STELLIO_URL}
+    networks:
+      - stellio
     ports:
       - "8084:8084"
     depends_on:
-      postgres:
+      stellio-postgres:
         condition: service_healthy
-      kafka:
+      stellio-kafka:
         condition: service_started
 
 networks:
-  default:
+  stellio:
     labels:
       org.egm: 'tutorial'
 
