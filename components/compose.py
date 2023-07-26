@@ -21,6 +21,7 @@
 ##
 from python_on_whales import DockerClient
 from components.exceptions import ComposeInitialization, UnknownBroker, Unimplemented
+from utils.file_utils import get_container_names_from_compose_file
 
 
 class Compose:
@@ -29,6 +30,12 @@ class Compose:
             "Orion-LD": ["./composes/orionld.yml"],
             "Stellio": ["./composes/stellio.yml"],
             "Scorpio": ["./composes/scorpio.yml"]
+        }
+
+        self.container_names = {
+            "Orion-LD": get_container_names_from_compose_file(self.brokers["Orion-LD"][0]),
+            "Stellio": get_container_names_from_compose_file(self.brokers["Stellio"][0]),
+            "Scorpio": get_container_names_from_compose_file(self.brokers["Scorpio"][0])
         }
 
         self.dockerEngine = None
@@ -80,9 +87,8 @@ class Compose:
             # Error, we need to call before the initialize operation to keep the broker and create the dockerEngine
             raise ComposeInitialization(data='')
         else:
-            if len(self.containers) == 0:
-                status = self.dockerEngine.compose.ps()
-                self.containers = [x.name for x in status]
+            status = self.dockerEngine.compose.ps()
+            self.containers = [x.name for x in status if x.name in self.container_names[self.broker]]
 
             status = self.dockerEngine.container.inspect(self.containers)
             status = [{"name": x.name, "health": x.state.health.status, "status": x.state.status} for x in status]
