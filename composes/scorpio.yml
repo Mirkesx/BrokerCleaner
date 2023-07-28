@@ -70,7 +70,7 @@ services:
       start_period: 10s
   scorpio:
     container_name: scorpio
-    image: scorpiobroker/all-in-one-runner:ubuntu-latest
+    image: scorpiobroker/all-in-one-runner:${SCORPIO_VERSION}
     hostname: scorpio
     labels:
       org.nec: 'tutorial'
