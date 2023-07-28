@@ -81,6 +81,9 @@ services:
     depends_on:
       - scorpio-postgres
       - scorpio-kafka
+    healthcheck:
+      test: test $(ps -ax | grep scorpio-all | wc -l) -gt 1 || exit 1
+      start_period: 30s
 
 networks:
   scorpio:

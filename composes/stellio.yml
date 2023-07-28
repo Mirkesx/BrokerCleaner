@@ -61,6 +61,9 @@ services:
       - stellio
     ports:
       - "8080:8080"
+    healthcheck:
+      test: curl --fail -X OPTIONS -s localhost:8080/ngsi-ld/v1/entities/ || exit 1
+      start_period: 30s
   stellio-search-service:
     container_name: stellio-search-service
     image: stellio/stellio-search-service:${STELLIO_DOCKER_TAG}
@@ -84,6 +87,9 @@ services:
         condition: service_healthy
       stellio-kafka:
         condition: service_started
+    healthcheck:
+      test: curl --fail -X OPTIONS -s stellio-api-gateway:8080/ngsi-ld/v1/entities/ || exit 1
+      start_period: 30s
   stellio-subscription-service:
     container_name: stellio-subscription-service
     image: stellio/stellio-subscription-service:${STELLIO_DOCKER_TAG}
@@ -109,6 +115,9 @@ services:
         condition: service_healthy
       stellio-kafka:
         condition: service_started
+    healthcheck:
+      test: curl --fail -X OPTIONS -s stellio-api-gateway:8080/ngsi-ld/v1/entities/ || exit 1
+      start_period: 30s
 
 networks:
   stellio:
