@@ -87,7 +87,7 @@ class Compose:
             # Error, we need to call before the initialize operation to keep the broker and create the dockerEngine
             raise ComposeInitialization(data='')
         else:
-            status = self.dockerEngine.compose.ps()
+            status = self.dockerEngine.compose.ps(all=True)
             self.containers = [x.name for x in status if x.name in self.container_names[self.broker]]
 
             status = self.dockerEngine.container.inspect(self.containers)
@@ -97,7 +97,7 @@ class Compose:
             
             if True in [ele == "unknown" for ele in health_status]:
                 res = "unknown"
-            elif True in [ele == "unhealthy" for ele in health_status]:
+            elif True in [ele == "unhealthy" for ele in health_status] or True in [ele == "exited" for ele in health_status]:
                 res = "unhealthy"
             elif True in [ele == "starting" for ele in health_status]:
                 res = "starting"
