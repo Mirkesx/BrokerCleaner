@@ -27,16 +27,12 @@ from utils.file_utils import get_container_names_from_compose_file
 class Compose:
     def __init__(self):
         self.brokers = {
+            "Lepus": ["./composes/lepus.yml"],
             "Orion-LD": ["./composes/orionld.yml"],
             "Stellio": ["./composes/stellio.yml"],
-            "Scorpio": ["./composes/scorpio.yml"]
+            "Scorpio": ["./composes/scorpio.yml"],
         }
-
-        self.container_names = {
-            "Orion-LD": get_container_names_from_compose_file(self.brokers["Orion-LD"][0]),
-            "Stellio": get_container_names_from_compose_file(self.brokers["Stellio"][0]),
-            "Scorpio": get_container_names_from_compose_file(self.brokers["Scorpio"][0])
-        }
+        self.container_names = { broker: get_container_names_from_compose_file(self.brokers[broker][0]) for broker in self.brokers.keys() }
 
         self.dockerEngine = None
         self.broker = None
