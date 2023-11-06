@@ -31,7 +31,7 @@ services:
       - CONTEXT_URL=https://fiware.github.io/tutorials.Step-by-Step/tutorials-context.jsonld
       - NOTIFICATION_RELAY_URL=http://adapter:3000/notify
       
-  orion:
+  orion-v2:
     image: quay.io/fiware/orion:${LEPUS_ORION_VERSION}
     hostname: orion2
     container_name: fiware-orion-v2
