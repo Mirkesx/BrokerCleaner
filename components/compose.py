@@ -21,15 +21,18 @@
 ##
 from python_on_whales import DockerClient
 from components.exceptions import ComposeInitialization, UnknownBroker, Unimplemented
+from utils.file_utils import get_container_names_from_compose_file
 
 
 class Compose:
     def __init__(self):
         self.brokers = {
+            "Lepus": ["./composes/lepus.yml"],
             "Orion-LD": ["./composes/orionld.yml"],
-            "Stellio": [],
-            "Scorpio": []
+            "Stellio": ["./composes/stellio.yml"],
+            "Scorpio": ["./composes/scorpio.yml"],
         }
+        self.container_names = { broker: get_container_names_from_compose_file(self.brokers[broker][0]) for broker in self.brokers.keys() }
 
         self.dockerEngine = None
         self.broker = None
@@ -80,16 +83,17 @@ class Compose:
             # Error, we need to call before the initialize operation to keep the broker and create the dockerEngine
             raise ComposeInitialization(data='')
         else:
-            if len(self.containers) == 0:
-                status = self.dockerEngine.compose.ps()
-                self.containers = [x.name for x in status]
+            status = self.dockerEngine.compose.ps(all=True)
+            self.containers = [x.name for x in status if x.name in self.container_names[self.broker]]
 
             status = self.dockerEngine.container.inspect(self.containers)
-            status = [{"name": x.name, "health": x.state.health.status, "status": x.state.status} for x in status]
+            status = [{"name": x.name, "health": x.state.health.status if x.state.health is not None else "unknown", "status": x.state.status} for x in status]
 
-            health_status = [x['health'] for x in status]
-
-            if True in [ele == "unhealthy" for ele in health_status]:
+            health_status = [x['health'] if 'health' in x else "unknown" for x in status]
+            
+            if True in [ele == "unknown" for ele in health_status]:
+                res = "unknown"
+            elif True in [ele == "unhealthy" for ele in health_status] or True in [ele == "exited" for ele in health_status]:
                 res = "unhealthy"
             elif True in [ele == "starting" for ele in health_status]:
                 res = "starting"
