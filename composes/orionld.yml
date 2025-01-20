@@ -15,7 +15,8 @@ services:
       - orion
     ports:
       - "${ORION_LD_PORT}:${ORION_LD_PORT}" # localhost:1026
-    command: -dbhost mongo-db -logLevel DEBUG -forwarding  -experimental -distributed
+    # command: -dbhost mongo-db -logLevel DEBUG -forwarding  -experimental -distributed
+    command: -dbhost mongo-db -logLevel DEBUG -distributed -t 0-255 -forwarding -wip entityMaps -experimental
     healthcheck:
       test: curl --fail -s http://orion:${ORION_LD_PORT}/version || exit 1
 
