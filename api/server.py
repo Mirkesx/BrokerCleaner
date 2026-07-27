@@ -197,4 +197,4 @@ def get_uptime():
 
 
 def launch(app: str = "server:application", host: str = "127.0.0.1", port: int = 5000):
-    run(app=app, host=host, port=port, log_level="info", reload=True, server_header=False)
+    run(app=app, host=host, port=port, log_level="info", reload=False, server_header=False)
