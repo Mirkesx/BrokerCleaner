@@ -7,6 +7,7 @@ services:
       - yanb
     ports:
       - "${YANB_PORT}:1026"
+    command: --database swRamDB --logLevel DEBUG
     healthcheck:
       test: curl --fail -s http://yanb:1026/ngsi-ld/v1/types || exit 1
 
