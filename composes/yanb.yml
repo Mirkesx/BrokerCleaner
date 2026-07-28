@@ -1,10 +1,8 @@
 services:
   yanb:
-    labels:
-      org.fiware: 'yanb'
     image: quay.io/seamware/broker:e418bb5
     hostname: yanb
-    container_name: fiware-yanb
+    container_name: yanb
     networks:
       - yanb
     ports:
@@ -14,5 +12,3 @@ services:
 
 networks:
   yanb:
-    labels:
-      org.fiware: 'yanb'
