@@ -1,13 +1,13 @@
 services:
   yanb:
-    image: quay.io/seamware/broker:e418bb5
+    image: quay.io/seamware/coraine:${YANB_VERSION}
     hostname: yanb
     container_name: yanb
     networks:
       - yanb
     ports:
       - "${YANB_PORT}:1026"
-    command: --database swRamDB
+    command: --database corDB
     healthcheck:
       test: curl --fail -s http://yanb:1026/ngsi-ld/v1/types || exit 1
 
