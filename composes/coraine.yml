@@ -1,0 +1,15 @@
+services:
+  coraine:
+    image: quay.io/seamware/coraine:${CORAINE_VERSION}
+    hostname: coraine
+    container_name: coraine
+    networks:
+      - coraine
+    ports:
+      - "${CORAINE_PORT}:1026"
+    command: --database corDB
+    healthcheck:
+      test: curl --fail -s http://coraine:1026/ngsi-ld/v1/types || exit 1
+
+networks:
+  coraine:

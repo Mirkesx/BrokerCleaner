@@ -31,7 +31,7 @@ class Compose:
             "Orion-LD": ["./composes/orionld.yml"],
             "Stellio": ["./composes/stellio.yml"],
             "Scorpio": ["./composes/scorpio.yml"],
-            "YANB": ["./composes/yanb.yml"],
+            "CORAINE": ["./composes/coraine.yml"],
         }
         self.container_names = { broker: get_container_names_from_compose_file(self.brokers[broker][0]) for broker in self.brokers.keys() }
 
